@@ -162,7 +162,41 @@ npm run build
   - [ ] Lagrange point calculations
   - [ ] Stability analysis
 
+### 🛰️ Priority 6: SPICE Integration (2-3 weeks)
+- [ ] **WebAssembly SPICE Setup**
+  - [ ] Research and select SPICE WASM library
+  - [ ] Build pipeline configuration
+  - [ ] Kernel loading system
+  - [ ] Memory optimization for large kernels
+- [ ] **Core SPICE Integration**
+  - [ ] Replace Astronomy Engine with SPICE for primary bodies
+  - [ ] Implement fallback mechanism
+  - [ ] Add SPICE/AstronomyEngine comparison tool
+  - [ ] Coordinate frame transformations (J2000, IAU, etc.)
+- [ ] **SPICE Data Management**
+  - [ ] Progressive kernel loading
+  - [ ] Kernel caching system
+  - [ ] Auto-download latest kernels
+  - [ ] Kernel selection UI
+- [ ] **Advanced SPICE Features**
+  - [ ] Load real spacecraft trajectories (Voyager, Cassini, etc.)
+  - [ ] Asteroid and comet ephemerides
+  - [ ] All planetary moons
+  - [ ] DSN station locations
+  - [ ] Light-time corrections
+  - [ ] Aberration corrections
+- [ ] **Mission Reconstruction**
+  - [ ] Historical mission trajectory playback
+  - [ ] Compare planned vs actual trajectories
+  - [ ] Instrument pointing calculations
+  - [ ] Event predictions (eclipses, occultations)
+
 ### 🌟 Future Features (Backlog)
+- [ ] **NASA SPICE Integration**
+  - [ ] Sub-kilometer position accuracy
+  - [ ] Real spacecraft telemetry data
+  - [ ] Professional-grade mission planning
+  - [ ] Access to 70+ years of space mission data
 - [ ] **Asteroid Belt & Comets**
   - [ ] Major asteroid positions
   - [ ] Comet orbits with tails
@@ -211,6 +245,7 @@ interplanetary-sim/
 - **Vite**: Build tool and dev server
 - **CSS3**: Modern UI with animations
 - **ES6 Modules**: Clean code organization
+- **SPICE** *(planned)*: NASA's navigation toolkit for professional accuracy
 
 ## 🧪 Testing
 
@@ -253,6 +288,9 @@ See [docs/mission-planning.md](docs/mission-planning.md) for detailed mission pl
 
 ### Physics Documentation
 See [docs/physics.md](docs/physics.md) for orbital mechanics implementation details.
+
+### SPICE Integration Guide
+See [docs/spice-integration.md](docs/spice-integration.md) for NASA SPICE toolkit integration plans.
 
 ## 🤝 Contributing
 
