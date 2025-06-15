@@ -4,43 +4,40 @@ A realistic, web-based solar system simulation with spacecraft mission planning 
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-2.1.0-green.svg)
-![Three.js](https://img.shields.io/badge/three.js-r128-orange.svg)
+![Three.js](https://img.shields.io/badge/three.js-r177-orange.svg)
 
 ## 🎥 Demo
 
 [Live Demo](#) | [Video Walkthrough](#) | [Screenshots](#)
-
-## 🆕 Recent Updates (v2.1)
-
-- **Unified Spacecraft Architecture**: Merged three separate spacecraft implementations into one efficient system
-- **Performance Optimizations**: Basic spacecraft now use 30% less memory
-- **Factory Pattern**: Easy spacecraft creation with presets (`probe`, `orbiter`, `lander`, `ionCraft`)
-- **Mission-Specific Craft**: Auto-configured spacecraft for Mars, Venus, and outer planet missions
-- **Enhanced Systems Simulation**: Realistic power, thermal, communications, and propulsion modeling
-- **Manoeuvre Node System**: Plan and execute orbital burns with visual preview
-- **Improved Code Quality**: Eliminated ~500 lines of duplicate code
 
 ## ✨ Features
 
 ### Current Features ✅
 - **Accurate Solar System Model**
   - Real planetary positions using NASA JPL ephemeris data
+  - SPICE-precision constants for all planetary bodies
   - Logarithmic scaling for visual clarity
   - Realistic orbital mechanics
   - Planet rotation and axial tilts
 
-- **Advanced Spacecraft System** *(v2.1 - Newly Refactored)*
-  - Unified spacecraft architecture with performance optimisation
-  - Basic spacecraft for lightweight missions (30% less memory)
+- **Advanced Spacecraft System**
   - Enhanced spacecraft with full systems simulation:
     - Power generation and battery management
     - Thermal control with radiators
     - Communications with realistic data rates
     - Propulsion with fuel consumption
     - Attitude control (RCS and reaction wheels)
-  - Factory pattern for easy spacecraft creation
   - Real physics simulation with gravitational calculations
   - Trajectory visualization with persistent trails
+  - Factory pattern for easy spacecraft creation
+
+- **Trajectory Planning System**
+  - Interactive trajectory planner interface
+  - Hohmann transfers with delta-v calculations
+  - Direct and gravity assist trajectories
+  - Fuel requirement estimates
+  - Launch window calculations
+  - 3D trajectory preview
 
 - **Manoeuvre Planning System**
   - Add manoeuvre nodes to plan burns
@@ -50,7 +47,7 @@ A realistic, web-based solar system simulation with spacecraft mission planning 
   - Visual node markers in 3D space
 
 - **Time Control System**
-  - Variable time acceleration (1 second = 1 day to 100,000x)
+  - Variable time acceleration (real-time to 100,000x)
   - Pause/resume functionality
   - Jump to specific dates
   - Mission elapsed time tracking
@@ -74,15 +71,15 @@ A realistic, web-based solar system simulation with spacecraft mission planning 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v20+ recommended, v22 also supported)
 - npm or yarn
-- Modern web browser with WebGL support
+- Modern web browser with WebGL support (Chrome recommended)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/interplanetary-sim.git
+git clone https://github.com/Zyzzbarth333/interplanetary-sim.git
 cd interplanetary-sim
 
 # Install dependencies
@@ -93,6 +90,34 @@ npm run dev
 
 # Build for production
 npm run build
+```
+
+### Development Options
+
+#### Local Development (Recommended)
+```cmd
+# Use Command Prompt (not PowerShell)
+cd C:\Users\[YourUser]\interplanetary-sim
+npm install
+npm run dev
+```
+
+#### DevContainer Development
+1. Install VS Code Remote - Containers extension
+2. Open project in VS Code
+3. F1 → "Dev Containers: Reopen in Container"
+4. Wait for container to build
+5. Terminal will open inside container
+6. Run `npm install` and `npm run dev`
+
+#### WSL Development
+```bash
+# In WSL Ubuntu
+cd ~/projects
+git clone https://github.com/Zyzzbarth333/interplanetary-sim.git
+cd interplanetary-sim
+npm install
+npm run dev
 ```
 
 ### Basic Usage
@@ -116,143 +141,13 @@ npm run build
    - `F`: Fullscreen
    - `P`: Screenshot
    - `B`: Trajectory planner
+   - `T`: Cycle time display format
 
 3. **Launching Spacecraft**
    - Press `1-9` for preset missions
    - Or use Mission Control panel (`M`)
-   - Click spacecraft to track
-
-## 📋 Development Roadmap
-
-### 🎯 Priority 1: Physics Accuracy (1-2 days)
-- [ ] Fix coordinate system alignment for proper orbital mechanics
-- [ ] Implement proper velocity vector transformations
-- [ ] Add orbital reference frame conversions
-- [ ] Validate with known trajectories (Hohmann transfers)
-- [ ] Add unit tests for physics calculations
-
-### 🚀 Priority 2: Mission Planning Tools (3-5 days)
-- [x] **Trajectory Planner Interface**
-  - [x] Mission selection UI
-  - [x] Delta-v calculations
-  - [x] Fuel requirements display
-- [ ] **Porkchop Plot Generator**
-  - [ ] Launch window analysis
-  - [ ] Delta-v requirement visualization
-  - [ ] Optimal departure/arrival date finder
-- [ ] **Enhanced Trajectory Preview**
-  - [ ] Ghost trajectory before launch
-  - [ ] Real-time preview updates
-  - [ ] Multiple trajectory comparison
-- [x] **Maneuver Node System** ✅
-  - [x] Add nodes with timing
-  - [x] Set delta-v components
-  - [x] Fuel requirement calculations
-  - [x] Visual node markers
-  - [x] Burn duration estimates
-
-### 🎨 Priority 3: Visual Enhancements (2-3 days)
-- [ ] **Enhanced Trajectory Trails**
-  - [ ] Gradient fade over time
-  - [ ] Color coding by velocity/altitude
-  - [ ] Configurable trail length
-- [ ] **Encounter Predictions**
-  - [ ] SOI entry/exit markers
-  - [ ] Closest approach indicators
-  - [ ] Flyby trajectory preview
-- [ ] **Improved Planet Rendering**
-  - [ ] Texture mapping support
-  - [ ] Cloud layers for Earth/Venus
-  - [ ] Jupiter's Great Red Spot
-  - [ ] Mars polar caps
-
-### 📊 Priority 4: Mission Analysis (3-4 days)
-- [ ] **Delta-V Budget Calculator**
-  - [ ] Launch requirements
-  - [ ] Transfer burns
-  - [ ] Capture burns
-  - [ ] Safety margins
-- [ ] **Communication Delay Display**
-  - [ ] Real-time signal delay
-  - [ ] Round-trip time
-  - [ ] Blackout predictions
-- [ ] **Mission Timeline**
-  - [ ] Key event scheduling
-  - [ ] Burn timing optimization
-  - [ ] Launch window alerts
-
-### 🔬 Priority 5: Advanced Physics (1-2 weeks)
-- [ ] **Patched Conics Implementation**
-  - [ ] Multiple gravity sources
-  - [ ] SOI calculations
-  - [ ] Reference frame switching
-- [ ] **Orbital Perturbations**
-  - [ ] J2 oblateness effects
-  - [ ] Solar radiation pressure
-  - [ ] Third-body perturbations
-  - [ ] Atmospheric drag (low orbits)
-- [ ] **N-Body Physics Mode**
-  - [ ] Full gravitational simulation
-  - [ ] Lagrange point calculations
-  - [ ] Stability analysis
-
-### 🛰️ Priority 6: SPICE Integration (2-3 weeks)
-- [ ] **WebAssembly SPICE Setup**
-  - [ ] Research and select SPICE WASM library
-  - [ ] Build pipeline configuration
-  - [ ] Kernel loading system
-  - [ ] Memory optimization for large kernels
-- [ ] **Core SPICE Integration**
-  - [ ] Replace Astronomy Engine with SPICE for primary bodies
-  - [ ] Implement fallback mechanism
-  - [ ] Add SPICE/AstronomyEngine comparison tool
-  - [ ] Coordinate frame transformations (J2000, IAU, etc.)
-- [ ] **SPICE Data Management**
-  - [ ] Progressive kernel loading
-  - [ ] Kernel caching system
-  - [ ] Auto-download latest kernels
-  - [ ] Kernel selection UI
-- [ ] **Advanced SPICE Features**
-  - [ ] Load real spacecraft trajectories (Voyager, Cassini, etc.)
-  - [ ] Asteroid and comet ephemerides
-  - [ ] All planetary moons
-  - [ ] DSN station locations
-  - [ ] Light-time corrections
-  - [ ] Aberration corrections
-- [ ] **Mission Reconstruction**
-  - [ ] Historical mission trajectory playback
-  - [ ] Compare planned vs actual trajectories
-  - [ ] Instrument pointing calculations
-  - [ ] Event predictions (eclipses, occultations)
-
-### 🌟 Future Features (Backlog)
-- [ ] **NASA SPICE Integration**
-  - [ ] Sub-kilometer position accuracy
-  - [ ] Real spacecraft telemetry data
-  - [ ] Professional-grade mission planning
-  - [ ] Access to 70+ years of space mission data
-- [ ] **Asteroid Belt & Comets**
-  - [ ] Major asteroid positions
-  - [ ] Comet orbits with tails
-  - [ ] Near-Earth object tracking
-- [ ] **Mission Templates**
-  - [ ] Apollo-style missions
-  - [ ] Mars Direct architecture
-  - [ ] Grand Tour trajectories
-  - [ ] ISS rendezvous
-- [ ] **Multiplayer Support**
-  - [ ] Shared mission planning
-  - [ ] Racing challenges
-  - [ ] Collaborative exploration
-- [ ] **VR/AR Support**
-  - [ ] WebXR integration
-  - [ ] Hand tracking controls
-  - [ ] Immersive navigation
-- [ ] **Educational Mode**
-  - [ ] Guided tutorials
-  - [ ] Physics explanations
-  - [ ] Historical missions
-  - [ ] Challenges/achievements
+   - Or use Trajectory Planner (`B`)
+   - Click spacecraft to track and control
 
 ## 🏗️ Architecture
 
@@ -264,81 +159,71 @@ interplanetary-sim/
 │   │   ├── CelestialBody.js       # Planet/moon representation
 │   │   ├── TimeController.js      # Time management system
 │   │   ├── OrbitalMechanics.js    # Physics calculations
+│   │   ├── PhysicsTest.js         # Physics validation suite
 │   │   ├── spacecraft/
-│   │   │   ├── BaseSpacecraft.js  # Unified spacecraft class
-│   │   │   ├── SpacecraftFactory.js # Spacecraft creation
-│   │   │   ├── SpacecraftSystems.js # Realistic subsystems
-│   │   │   └── ManoeuvreNode.js   # Manoeuvre planning
+│   │   │   ├── EnhancedSpacecraft.js  # Advanced spacecraft
+│   │   │   ├── SpacecraftSystems.js   # Realistic subsystems
+│   │   │   └── ManoeuvreNode.js      # Manoeuvre planning
 │   │   └── trajectory/
-│   │       └── TrajectoryPlanner.js # Mission planning tools
+│   │       └── TrajectoryPlanner.js   # Mission planning tools
 │   ├── ui/
-│   │   └── SpacecraftControlPanel.js # Advanced controls
+│   │   └── SpacecraftControlPanel.js  # Advanced controls
 │   ├── utils/
-│   │   └── constants.js           # Physical constants & data
+│   │   └── constants.js           # SPICE-precision constants
 │   ├── main.js                    # Application entry point
 │   └── style.css                  # UI styling
 ├── public/                        # Static assets
-├── docs/                          # Documentation
-└── tests/                         # Unit tests
+├── .devcontainer/                 # DevContainer configuration
+│   ├── devcontainer.json         
+│   └── Dockerfile                
+├── index.html                     # Entry HTML
+├── vite.config.js                # Vite configuration
+└── package.json                  # Project dependencies
 ```
 
 ### Key Technologies
-- **Three.js**: 3D graphics and rendering
+- **Three.js r177**: 3D graphics and rendering
 - **Astronomy Engine**: Accurate ephemeris calculations
-- **Vite**: Build tool and dev server
+- **Vite 5.4**: Build tool and dev server
 - **CSS3**: Modern UI with animations
 - **ES6 Modules**: Clean code organization
-- **SPICE** *(planned)*: NASA's navigation toolkit for professional accuracy
 
-## 🧪 Testing
+## 📚 API Documentation
 
-```bash
-# Run unit tests
-npm test
-
-# Run physics validation
-npm run test:physics
-
-# Run performance benchmarks
-npm run benchmark
-```
-
-### Physics Validation Tests
-- Hohmann transfer accuracy
-- Energy conservation
-- Kepler's laws verification
-- Launch window calculations
-
-## 📚 Documentation
-
-### API Reference
+### Launching Spacecraft
 ```javascript
-// Launch a spacecraft (automatic type selection)
-simulation.launchSpacecraft(name, fromBody, deltaV);
-
-// Create spacecraft using factory
-const basicProbe = SpacecraftFactory.createBasic('Probe-1', {
-  position: [1, 0, 0],
-  velocity: [0, 30, 0]
-});
-
-const advancedCraft = SpacecraftFactory.createEnhanced('Mars-Mission', 
-  { position: [1, 0, 0], velocity: [0, 30, 0] },
-  { fuel: 1000, solarPanelArea: 50 }
+// Launch spacecraft with enhanced systems
+const spacecraft = simulation.launchSpacecraft(
+  'Mission-Name',
+  'earth',              // Launch from
+  new THREE.Vector3(0, 3.6, 0)  // Delta-V (km/s)
 );
 
-// Use preset configurations
-const ionCraft = SpacecraftFactory.createFromPreset('ionCraft');
-const marsMission = SpacecraftFactory.createForMission('mars');
-
 // Add manoeuvre nodes
-const node = spacecraft.addManoeuvreNode(86400); // 1 day
-node.setDeltaV(0, 2, 0); // 2 km/s prograde
+const node = spacecraft.addManoeuvreNode(86400); // 1 day from now
+node.setDeltaV(0, 2, 0); // 2 km/s prograde burn
 
-// Set time
+// Control spacecraft systems
+spacecraft.systems.attitude.mode = 'PROGRADE';
+spacecraft.systems.power.consumers.instruments = 500; // Watts
+```
+
+### Time Control
+```javascript
+// Set specific date
 simulation.timeController.setDate(new Date('2025-12-25'));
 
-// Focus camera
+// Change time scale
+simulation.timeController.setPresetSpeed('day'); // 1 day/second
+simulation.timeController.setTimeScale(100);     // Custom scale
+
+// Pause/resume
+simulation.timeController.togglePause();
+```
+
+### Camera Control
+```javascript
+// Focus on objects
 simulation.focusOnBody(simulation.bodies.get('mars'));
 simulation.focusOnSpacecraft(spacecraft);
 
@@ -346,20 +231,47 @@ simulation.focusOnSpacecraft(spacecraft);
 simulation.takeScreenshot();
 ```
 
-### Mission Planning Guide
-See [docs/mission-planning.md](docs/mission-planning.md) for detailed mission planning instructions.
+## 📈 Performance
 
-### Physics Documentation
-See [docs/physics.md](docs/physics.md) for orbital mechanics implementation details.
+### Optimization Techniques
+- Level of Detail (LOD) for distant objects
+- Orbit line culling based on camera distance
+- Efficient trajectory point management
+- WebGL state caching
+- RequestAnimationFrame throttling
+- Vite dependency pre-bundling
 
-### SPICE Integration Guide
-See [docs/spice-integration.md](docs/spice-integration.md) for NASA SPICE toolkit integration plans.
+### Benchmarks
+- 60 FPS with 9 planets + 10 spacecraft
+- < 150MB memory usage
+- 2ms physics calculations per frame
+- Works on mobile devices
+
+## 🧪 Testing
+
+```javascript
+// Run physics validation tests in console
+const test = new PhysicsTest(simulation);
+test.runAllTests();
+```
+
+Tests include:
+- Circular orbit stability
+- Hohmann transfer accuracy
+- Energy conservation
+- Escape velocity calculations
+
+## 🐛 Known Issues
+
+- [ ] Three.js warning about multiple instances (harmless)
+- [ ] Initial load time in DevContainer can be slow
+- [ ] Edge browser may have stricter security for DevContainers (use Chrome)
+- [ ] Touch controls need improvement on small screens
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions! Please:
 
-### Development Setup
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit changes (`git commit -m 'Add amazing feature'`)
@@ -370,29 +282,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 - ES6+ JavaScript
 - Meaningful variable names
 - JSDoc comments for public methods
-- Consistent formatting (Prettier)
-
-## 📈 Performance
-
-### Optimization Techniques
-- Level of Detail (LOD) for distant objects
-- Orbit line culling based on camera distance
-- Efficient trajectory point management
-- WebGL state caching
-- RequestAnimationFrame throttling
-
-### Benchmarks
-- 60 FPS with 9 planets + 50 spacecraft
-- < 100MB memory usage
-- 2ms physics calculations per frame
-- Works on mobile devices
-
-## 🐛 Known Issues
-
-- [ ] Spacecraft occasionally drift from calculated orbits after long simulations
-- [ ] Touch controls need improvement on small screens
-- [ ] Memory leak when creating/destroying many spacecraft
-- [ ] Orbit lines flicker at extreme zoom levels
+- Consistent formatting
 
 ## 📜 License
 
@@ -400,19 +290,18 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 ## 🙏 Acknowledgments
 
-- NASA JPL for ephemeris data
+- NASA JPL for ephemeris data and SPICE toolkit
 - Three.js community for excellent documentation
 - Astronomy Engine for accurate calculations
 - KSP for inspiration
 
 ## 📞 Contact
 
-- GitHub Issues: [Report bugs or request features](https://github.com/yourusername/interplanetary-sim/issues)
-- Email: your.email@example.com
-- Twitter: [@yourusername](https://twitter.com/yourusername)
+- GitHub Issues: [Report bugs or request features](https://github.com/Zyzzbarth333/interplanetary-sim/issues)
+- GitHub: [@Zyzzbarth333](https://github.com/Zyzzbarth333)
 
 ---
 
-Made with 🚀 by [Your Name]
+Made with 🚀 by Zyzzbarth333
 
 *"The cosmos is within us. We are made of star-stuff." - Carl Sagan*

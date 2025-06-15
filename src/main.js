@@ -164,6 +164,12 @@ class InterplanetarySimulationApp {
   }
   
   async hideLoadingScreen() {
+    // First hide the simple HTML loader
+    const htmlLoader = document.getElementById('loading');
+    if (htmlLoader) {
+      htmlLoader.style.display = 'none';
+    }
+    
     const loadingScreen = document.getElementById('loading-screen');
     if (!loadingScreen) return;
     
