@@ -1,0 +1,65 @@
+{
+  "mercury": {
+    "radius_km": 2439.7733333333335,
+    "mass_kg": 3.301000636980658e+23,
+    "gm_km3_s2": 22031.868551400003,
+    "rotation_period_days": 58.64614590235795,
+    "axial_tilt_degrees": 28.5845
+  },
+  "venus": {
+    "radius_km": 6051.8,
+    "mass_kg": 4.867305814842006e+24,
+    "gm_km3_s2": 324858.592,
+    "rotation_period_days": 243.01848398589195,
+    "axial_tilt_degrees": 22.840000000000003
+  },
+  "earth": {
+    "radius_km": 6371.008366666666,
+    "mass_kg": 5.972168399787583e+24,
+    "gm_km3_s2": 398600.4355070226,
+    "rotation_period_days": 0.997269632262793,
+    "axial_tilt_degrees": 0.0
+  },
+  "mars": {
+    "radius_km": 3389.5266666666666,
+    "mass_kg": 6.416908682663213e+23,
+    "gm_km3_s2": 42828.37362069909,
+    "rotation_period_days": 1.0259567559602898,
+    "axial_tilt_degrees": 35.567484
+  },
+  "jupiter": {
+    "radius_km": 69946.0,
+    "mass_kg": 1.898124625809005e+27,
+    "gm_km3_s2": 126686531.9003704,
+    "rotation_period_days": 0.4135383258130623,
+    "axial_tilt_degrees": 25.504696999999993
+  },
+  "saturn": {
+    "radius_km": 58300.0,
+    "mass_kg": 5.6831737012663016e+26,
+    "gm_km3_s2": 37931206.23436167,
+    "rotation_period_days": 0.4440092592388495,
+    "axial_tilt_degrees": 6.462999999999994
+  },
+  "uranus": {
+    "radius_km": 25363.666666666668,
+    "mass_kg": 8.680987154498916e+25,
+    "gm_km3_s2": 5793951.256527211,
+    "rotation_period_days": 0.7183333333439753,
+    "axial_tilt_degrees": 105.175
+  },
+  "neptune": {
+    "radius_km": 24623.0,
+    "mass_kg": 1.0240928854654863e+26,
+    "gm_km3_s2": 6835103.145462294,
+    "rotation_period_days": 0.6652624999415655,
+    "axial_tilt_degrees": 46.54
+  },
+  "sun": {
+    "radius_km": 695700.0,
+    "mass_kg": 1.9884098713165337e+30,
+    "gm_km3_s2": 132712440041.27939,
+    "rotation_period_days": 25.379994924001014,
+    "axial_tilt_degrees": 26.130000000000003
+  }
+}

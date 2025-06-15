@@ -7,39 +7,41 @@ import { SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE } from '../utils/
    =================================== */
 
 export class TimeController {
-  constructor(initialDate = new Date()) {
-    // Time state
-    this.currentDate = new Date(initialDate);
-    this.startDate = new Date(initialDate);
-    this.timeScale = 1; // days per second
-    this.isPaused = false;
-    
-    // Performance tracking
-    this.lastUpdate = performance.now();
-    this.totalElapsedTime = 0; // Total simulated time in days
-    this.realTimeElapsed = 0;  // Real time elapsed in seconds
-    
-    // Time scale limits and presets
-    this.minTimeScale = 0.001;  // 1.44 minutes per second (slowest)
-    this.maxTimeScale = 100000; // ~274 years per second (fastest)
-    
-    // Common time scales for quick access
-    this.timeScalePresets = {
-      realtime: 1 / SECONDS_PER_DAY,     // 1 second = 1 second
-      minute: 1 / (SECONDS_PER_DAY / 60), // 1 second = 1 minute
-      hour: 1 / 24,                       // 1 second = 1 hour
-      day: 1,                             // 1 second = 1 day
-      week: 7,                            // 1 second = 1 week
-      month: 30,                          // 1 second = 30 days
-      year: 365.25,                       // 1 second = 1 year
-      decade: 3652.5,                     // 1 second = 10 years
-      century: 36525                      // 1 second = 100 years
-    };
-    
-    // Event tracking
-    this.events = [];
-    this.callbacks = new Map();
-  }
+constructor(initialDate = new Date()) {
+  // Time state
+  this.currentDate = new Date(initialDate);
+  this.startDate = new Date(initialDate);
+  
+  // Performance tracking
+  this.lastUpdate = performance.now();
+  this.totalElapsedTime = 0; // Total simulated time in days
+  this.realTimeElapsed = 0;  // Real time elapsed in seconds
+  
+  // Time scale limits and presets
+  this.minTimeScale = 0.001;  // 1.44 minutes per second (slowest)
+  this.maxTimeScale = 100000; // ~274 years per second (fastest)
+  
+  // Common time scales for quick access
+  this.timeScalePresets = {
+    realtime: 1 / SECONDS_PER_DAY,     // 1 second = 1 second
+    minute: 1 / (SECONDS_PER_DAY / 60), // 1 second = 1 minute
+    hour: 1 / 24,                       // 1 second = 1 hour
+    day: 1,                             // 1 second = 1 day
+    week: 7,                            // 1 second = 1 week
+    month: 30,                          // 1 second = 30 days
+    year: 365.25,                       // 1 second = 1 year
+    decade: 3652.5,                     // 1 second = 10 years
+    century: 36525                      // 1 second = 100 years
+  };
+  
+  // Set initial time scale to real-time
+  this.timeScale = this.timeScalePresets.realtime; // Now defaults to real-time
+  this.isPaused = false;
+  
+  // Event tracking
+  this.events = [];
+  this.callbacks = new Map();
+}
 
   /* ===================================
      CORE TIME MANAGEMENT
@@ -144,29 +146,48 @@ export class TimeController {
     return this.timeScale;
   }
   
-  getTimeScaleDescription() {
-    const scale = this.timeScale;
-    
-    if (scale < 1 / SECONDS_PER_DAY) {
-      return `${(SECONDS_PER_DAY * scale).toFixed(2)} seconds/second`;
-    } else if (scale < 1 / 3600) {
-      return `${(1440 * scale).toFixed(2)} minutes/second`;
-    } else if (scale < 1 / 60) {
-      return `${(24 * scale).toFixed(2)} hours/second`;
-    } else if (scale < 1) {
-      return `${scale.toFixed(3)} days/second`;
-    } else if (scale < 7) {
-      return `${scale.toFixed(2)} days/second`;
-    } else if (scale < 30) {
-      return `${(scale / 7).toFixed(2)} weeks/second`;
-    } else if (scale < 365) {
-      return `${(scale / 30).toFixed(2)} months/second`;
-    } else if (scale < 3650) {
-      return `${(scale / 365.25).toFixed(2)} years/second`;
-    } else {
-      return `${(scale / 3652.5).toFixed(1)} decades/second`;
+getTimeScaleDescription() {
+  const scale = this.timeScale;
+  const epsilon = 1e-10; // Small value for floating point comparison
+  
+  // Check for exact preset values
+  for (const [name, value] of Object.entries(this.timeScalePresets)) {
+    if (Math.abs(scale - value) < epsilon) {
+      switch(name) {
+        case 'realtime': return '1 second/second';
+        case 'minute': return '1 minute/second';
+        case 'hour': return '1 hour/second';
+        case 'day': return '1 day/second';
+        case 'week': return '1 week/second';
+        case 'month': return '1 month/second';
+        case 'year': return '1 year/second';
+        case 'decade': return '1 decade/second';
+        case 'century': return '1 century/second';
+      }
     }
   }
+  
+  // For non-preset values, use the existing logic
+  if (scale < 1 / SECONDS_PER_DAY) {
+    return `${(SECONDS_PER_DAY * scale).toFixed(2)} seconds/second`;
+  } else if (scale < 1 / 3600) {
+    return `${(1440 * scale).toFixed(2)} minutes/second`;
+  } else if (scale < 1 / 60) {
+    return `${(24 * scale).toFixed(2)} hours/second`;
+  } else if (scale < 1) {
+    return `${scale.toFixed(3)} days/second`;
+  } else if (scale < 7) {
+    return `${scale.toFixed(2)} days/second`;
+  } else if (scale < 30) {
+    return `${(scale / 7).toFixed(2)} weeks/second`;
+  } else if (scale < 365) {
+    return `${(scale / 30).toFixed(2)} months/second`;
+  } else if (scale < 3650) {
+    return `${(scale / 365.25).toFixed(2)} years/second`;
+  } else {
+    return `${(scale / 3652.5).toFixed(1)} decades/second`;
+  }
+}
 
   /* ===================================
      DATE FORMATTING

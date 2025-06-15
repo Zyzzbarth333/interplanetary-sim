@@ -35,7 +35,7 @@ export class CelestialBody {
     this.currentPosition = new THREE.Vector3();
     this.currentVelocity = new THREE.Vector3();
     
-    // Rotation
+    // Rotation - use SPICE sidereal period
     this.rotationSpeed = this.calculateRotationSpeed();
     this.axialTilt = this.data.axialTilt || 0;
     
@@ -54,43 +54,57 @@ export class CelestialBody {
      VISUAL COMPONENTS
      =================================== */
   
-  createVisualElements() {
-    this.mesh = this.createMesh();
-    this.orbitLine = this.createOrbitLine();
-    
-    // Add special features
-    if (this.data.hasRings) {
-      this.createRings();
-    }
-    
-    if (this.data.atmospherePressure > 0) {
-      this.createAtmosphere();
-    }
-    
-    // Apply axial tilt
-    if (this.axialTilt !== 0) {
-      this.mesh.rotation.z = THREE.MathUtils.degToRad(this.axialTilt);
+createVisualElements() {
+  this.mesh = this.createMesh();
+  this.orbitLine = this.createOrbitLine();
+  
+  // Create a container group for the planet system
+  this.group = new THREE.Group();
+  this.group.add(this.mesh);
+  
+  // Add special features
+  if (this.data.hasRings) {
+    this.createRings();
+    if (this.rings) {
+      this.group.add(this.rings);
     }
   }
   
+  if (this.data.atmospherePressure > 0) {
+    this.createAtmosphere();
+  }
+  
+  // Create label (it will add itself to the group)
+  this.createLabel();
+  
+  // Apply proper axial tilt to the entire group
+  if (this.axialTilt !== 0) {
+    this.group.rotation.z = THREE.MathUtils.degToRad(this.axialTilt);
+  }
+}
+  
   createMesh() {
-    const radius = this.calculateVisualRadius();
+    const visualRadius = this.calculateVisualRadius();
     
     // Create LOD object for performance
     const lod = new THREE.LOD();
     
+    // Calculate flattening for oblate spheroid shape
+    const flattening = this.data.flattening || 0;
+    const polarScale = 1 - flattening;
+    
     // High detail mesh (close up)
-    const highGeo = new THREE.SphereGeometry(radius, this.lodLevels.high, this.lodLevels.high);
+    const highGeo = this.createOblateSpheroid(visualRadius, polarScale, this.lodLevels.high);
     const highMesh = new THREE.Mesh(highGeo, this.createMaterial());
     lod.addLevel(highMesh, 0);
     
     // Medium detail mesh (standard view)
-    const medGeo = new THREE.SphereGeometry(radius, this.lodLevels.medium, this.lodLevels.medium);
+    const medGeo = this.createOblateSpheroid(visualRadius, polarScale, this.lodLevels.medium);
     const medMesh = new THREE.Mesh(medGeo, this.createMaterial());
     lod.addLevel(medMesh, 5);
     
     // Low detail mesh (distant view)
-    const lowGeo = new THREE.SphereGeometry(radius, this.lodLevels.low, this.lodLevels.low);
+    const lowGeo = this.createOblateSpheroid(visualRadius, polarScale, this.lodLevels.low);
     const lowMesh = new THREE.Mesh(lowGeo, this.createMaterial());
     lod.addLevel(lowMesh, 20);
     
@@ -102,15 +116,30 @@ export class CelestialBody {
     return lod;
   }
   
+  createOblateSpheroid(equatorialRadius, polarScale, segments) {
+    // Create a sphere and scale it to make an oblate spheroid
+    const geometry = new THREE.SphereGeometry(equatorialRadius, segments, segments);
+    
+    // Scale Y axis (poles) by polarScale to create oblate shape
+    if (polarScale < 1) {
+      geometry.scale(1, polarScale, 1);
+    }
+    
+    return geometry;
+  }
+  
   calculateVisualRadius() {
+    // Use equatorial radius for visual scaling
+    const radius = this.data.equatorial_radius || this.data.radius || EARTH_RADIUS_KM;
+    
     // Special handling for the Sun
     if (this.data.name === 'Sun') {
-      const sunScale = Math.log10(SOLAR_RADIUS_KM / EARTH_RADIUS_KM + 1) * 0.15;
+      const sunScale = Math.log10(radius / EARTH_RADIUS_KM + 1) * 0.15;
       return sunScale * VISUAL_SETTINGS.planetScale;
     }
     
-    // For planets, use logarithmic scaling
-    const radiusInEarthRadii = this.data.radius / EARTH_RADIUS_KM;
+    // For planets, use logarithmic scaling based on Earth radii
+    const radiusInEarthRadii = radius / EARTH_RADIUS_KM;
     const scaledRadius = Math.log10(radiusInEarthRadii + 1) * 0.1;
     
     return scaledRadius * VISUAL_SETTINGS.planetScale;
@@ -172,11 +201,20 @@ export class CelestialBody {
   }
   
   createAtmosphere() {
-    const radius = this.calculateVisualRadius();
+    const visualRadius = this.calculateVisualRadius();
+    const flattening = this.data.flattening || 0;
+    const polarScale = 1 - flattening;
+    
+    // Atmosphere is slightly larger than the planet
     const atmosphereGeometry = new THREE.SphereGeometry(
-      radius * 1.1, // 10% larger than planet
+      visualRadius * 1.1, // 10% larger than planet
       32, 32
     );
+    
+    // Apply same flattening to atmosphere
+    if (polarScale < 1) {
+      atmosphereGeometry.scale(1, polarScale, 1);
+    }
     
     const atmosphereMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -208,28 +246,34 @@ export class CelestialBody {
     this.mesh.add(this.atmosphere);
   }
   
-  createRings() {
-    if (this.data.name !== 'Saturn') return; // Only Saturn for now
+createRings() {
+  if (this.data.name !== 'Saturn') return; // Only Saturn for now
+  
+  const innerRadius = this.calculateVisualRadius() * 1.5;
+  const outerRadius = this.calculateVisualRadius() * 2.5;
+  
+  const ringGeometry = new THREE.RingGeometry(
+    innerRadius,
+    outerRadius,
+    64, // Theta segments
+    8   // Phi segments
+  );
+  
+  const ringMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffcc99,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.7
+  });
+  
+  this.rings = new THREE.Mesh(ringGeometry, ringMaterial);
+  this.rings.rotation.x = Math.PI / 2; // Lay flat
     
-    const innerRadius = this.calculateVisualRadius() * 1.5;
-    const outerRadius = this.calculateVisualRadius() * 2.5;
+    // Apply Saturn's axial tilt to rings
+    if (this.axialTilt !== 0) {
+      this.rings.rotation.z = THREE.MathUtils.degToRad(this.axialTilt);
+    }
     
-    const ringGeometry = new THREE.RingGeometry(
-      innerRadius,
-      outerRadius,
-      64, // Theta segments
-      8   // Phi segments
-    );
-    
-    const ringMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffcc99,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.7
-    });
-    
-    this.rings = new THREE.Mesh(ringGeometry, ringMaterial);
-    this.rings.rotation.x = Math.PI / 2; // Lay flat
     this.mesh.add(this.rings);
   }
 
@@ -301,7 +345,7 @@ export class CelestialBody {
   
   updatePosition(date) {
     if (this.data.name === 'Sun') {
-      this.mesh.position.set(0, 0, 0);
+      this.group.position.set(0, 0, 0);
       this.currentPosition.set(0, 0, 0);
       return;
     }
@@ -311,7 +355,7 @@ export class CelestialBody {
     
     // Convert to Three.js coordinates (swap Y and Z, negate Z)
     this.currentPosition.set(pos.x, pos.z, -pos.y);
-    this.mesh.position.copy(this.currentPosition);
+    this.group.position.copy(this.currentPosition); // Move the group, not mesh
     
     // Update velocity for info display
     this.updateVelocity(date);
@@ -342,12 +386,16 @@ export class CelestialBody {
   calculateRotationSpeed() {
     if (!this.data.rotationPeriod || this.data.rotationPeriod === 0) return 0;
     
-    // Convert rotation period to radians per day
+    // Convert rotation period (in days) to radians per day
     const radiansPerDay = (2 * Math.PI) / Math.abs(this.data.rotationPeriod);
     
     // Negative period means retrograde rotation
     return this.data.rotationPeriod < 0 ? -radiansPerDay : radiansPerDay;
   }
+
+  get position() {
+  return this.group ? this.group.position : new THREE.Vector3();
+}
 
   /* ===================================
      LABELS AND INFO
@@ -381,6 +429,11 @@ export class CelestialBody {
     this.label.scale.set(0.5, 0.125, 1);
     this.label.position.y = this.calculateVisualRadius() * 1.5;
     
+    // Add label to the group, not the mesh
+    if (this.group) {
+      this.group.add(this.label);
+    }
+    
     return this.label;
   }
   
@@ -405,7 +458,9 @@ export class CelestialBody {
   getInfo(date = new Date()) {
     const baseInfo = {
       name: this.data.name,
-      radius: this.data.radius,
+      equatorial_radius: this.data.equatorial_radius || this.data.radius,
+      polar_radius: this.data.polar_radius || this.data.radius,
+      flattening: this.data.flattening || 0,
       mass: this.data.mass,
       type: this.getBodyType()
     };
@@ -416,7 +471,8 @@ export class CelestialBody {
         ...baseInfo,
         distance: 0,
         velocity: 0,
-        temperature: this.data.temperature || 'N/A'
+        temperature: this.data.temperature || 'N/A',
+        rotationPeriod: this.data.rotationPeriod
       };
     }
     
@@ -433,6 +489,7 @@ export class CelestialBody {
       velocity: velocity.toFixed(1),
       orbitalPeriod: this.data.orbitalPeriod,
       rotationPeriod: Math.abs(this.data.rotationPeriod || 0),
+      axialTilt: this.data.axialTilt,
       eccentricity: this.data.eccentricity,
       inclination: this.data.inclination,
       atmosphere: this.data.atmospherePressure > 0,
@@ -441,9 +498,11 @@ export class CelestialBody {
   }
   
   getBodyType() {
+    const radius = this.data.radius || this.data.equatorial_radius || 0;
+    
     if (this.data.name === 'Sun') return 'Star';
-    if (this.data.radius < 3000) return 'Terrestrial Planet';
-    if (this.data.radius < 10000) return 'Super-Earth';
+    if (radius < 3000) return 'Terrestrial Planet';
+    if (radius < 10000) return 'Super-Earth';
     return 'Gas Giant';
   }
   

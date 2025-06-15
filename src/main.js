@@ -3,6 +3,9 @@ import './style.css';
 import { SolarSystem } from './simulation/SolarSystem.js';
 import * as THREE from 'three';
 import { DELTA_V, TRANSFER_TIMES, SYNODIC_PERIODS } from './utils/constants.js';
+import { PhysicsTest } from './simulation/PhysicsTest.js';
+import { OrbitalMechanics } from './simulation/OrbitalMechanics.js';
+import { SpacecraftFactory } from './simulation/spacecraft/SpacecraftFactory.js';
 
 /* ===================================
    MISSION PRESETS
@@ -109,6 +112,9 @@ class InterplanetarySimulationApp {
       // Expose to window for debugging
       window.simulation = this.simulation;
       window.app = this;
+      window.PhysicsTest = PhysicsTest;
+      window.OrbitalMechanics = OrbitalMechanics;
+      window.SpacecraftFactory = SpacecraftFactory;
       
       // Setup controls
       this.setupKeyboardControls();

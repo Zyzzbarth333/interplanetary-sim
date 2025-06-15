@@ -4,7 +4,12 @@ import * as Astronomy from 'astronomy-engine';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { CelestialBody } from './CelestialBody.js';
 import { TimeController } from './TimeController.js';
-import { Spacecraft } from './Spacecraft.js';
+// import { Spacecraft } from './Spacecraft.js';
+import { OrbitalMechanics } from './OrbitalMechanics.js'; 
+// import { EnhancedSpacecraft } from './spacecraft/EnhancedSpacecraft.js';
+import { SpacecraftFactory } from './spacecraft/SpacecraftFactory.js';
+import { SpacecraftControlPanel } from '../ui/SpacecraftControlPanel.js';
+import { ManoeuvreManager } from './spacecraft/ManoeuvreNode.js';
 import { 
   PLANETS,
   VISUAL_SETTINGS,
@@ -32,11 +37,16 @@ export class SolarSystem {
     this.bodies = new Map();
     this.spacecraft = [];
     this.timeController = new TimeController();
+
+    this.spacecraftControlPanel = null;
+    this.manoeuvreManager = null;
     
     // Selection state
     this.selectedBody = null;
     this.selectedSpacecraft = null;
     this.highlightedObject = null;
+
+    this.trajectoryPlanner = null;
     
     // Interaction
     this.raycaster = new THREE.Raycaster();
@@ -81,6 +91,9 @@ export class SolarSystem {
     
     this.setupEventListeners();
     this.setupKeyboardControls();
+
+    this.spacecraftControlPanel = new SpacecraftControlPanel(this);
+    this.manoeuvreManager = new ManoeuvreManager(this.scene);
     
     // Subscribe to time controller events
     this.timeController.addCallback('pause', () => this.onTimePause());
@@ -188,25 +201,20 @@ export class SolarSystem {
       jupiter: Astronomy.Body.Jupiter,
       saturn: Astronomy.Body.Saturn,
       uranus: Astronomy.Body.Uranus,
-      neptune: Astronomy.Body.Neptune
+      neptune: Astronomy.Body.Neptune,
+      pluto: Astronomy.Body.Pluto
     };
     
     // Create all planets
     Object.entries(astronomyBodies).forEach(([key, astronomyBody]) => {
       const body = new CelestialBody(PLANETS[key], astronomyBody);
       
-      // Add mesh to scene
-      this.scene.add(body.mesh);
+      // Add group to scene instead of mesh
+      this.scene.add(body.group);
       
       // Add orbit line
       if (body.orbitLine && this.visualSettings.showOrbits) {
         this.scene.add(body.orbitLine);
-      }
-      
-      // Add label (initially hidden)
-      if (body.createLabel) {
-        const label = body.createLabel();
-        this.scene.add(label);
       }
       
       // Store in bodies map
@@ -292,16 +300,17 @@ export class SolarSystem {
         <span id="mission-time">-</span>
       </div>
       <div class="controls">
+        <button id="reset-time" title="R">📅 Today</button>
+        <button id="speed-down" title="-">⏪ Slower</button>
         <button id="play-pause" title="Space">⏸️ Pause</button>
         <button id="speed-up" title="+">⏩ Faster</button>
-        <button id="speed-down" title="-">⏪ Slower</button>
-        <button id="reset-time" title="R">📅 Today</button>
       </div>
       <div class="controls">
         <button id="toggle-orbits" title="O">🔄 Orbits</button>
         <button id="toggle-labels" title="L">🏷️ Labels</button>
         <button id="focus-sun" title="S">☀️ Sun</button>
         <button id="focus-earth" title="E">🌍 Earth</button>
+        <button id="trajectory-planner" title="B">🧭 Trajectory Planner</button>
       </div>
     `;
     
@@ -387,6 +396,15 @@ export class SolarSystem {
     
     document.getElementById('focus-earth').addEventListener('click', () => {
       this.focusOnBody(this.bodies.get('earth'));
+    });
+
+    // Trajectory planner
+    document.getElementById('trajectory-planner').addEventListener('click', async () => {
+      if (!this.trajectoryPlanner) {
+        const { TrajectoryPlanner } = await import('./trajectory/TrajectoryPlanner.js');
+        this.trajectoryPlanner = new TrajectoryPlanner(this);
+      }
+      this.trajectoryPlanner.show();
     });
   }
 
@@ -508,7 +526,7 @@ export class SolarSystem {
       }
       
       // Update visual elements based on camera distance
-      const distance = this.camera.position.distanceTo(body.mesh.position);
+      const distance = this.camera.position.distanceTo(body.group.position); // Changed from body.mesh.position
       
       if (body.updateOrbitVisibility) {
         body.updateOrbitVisibility(distance);
@@ -539,7 +557,7 @@ export class SolarSystem {
   setupKeyboardControls() {
     window.addEventListener('keydown', (e) => {
       // Prevent default for our keys
-      if (['Space', 'KeyH', 'KeyO', 'KeyL', 'KeyR', 'KeyS', 'KeyE', 'KeyF'].includes(e.code)) {
+      if (['Space', 'KeyH', 'KeyO', 'KeyL', 'KeyR', 'KeyS', 'KeyE', 'KeyF', 'KeyN', 'KeyA', 'KeyT', 'KeyB'].includes(e.code)) {
         e.preventDefault();
       }
       
@@ -589,6 +607,48 @@ export class SolarSystem {
         case 'Escape':
           this.clearSelection();
           break;
+
+        case 'KeyN':
+        // Add manoeuvre node
+        if (this.selectedSpacecraft && this.selectedSpacecraft.addManoeuvreNode) {
+          const node = this.selectedSpacecraft.addManoeuvreNode(86400); // 1 day
+          node.setDeltaV(0, 0.5, 0); // 0.5 km/s prograde
+          
+          // Add visual to scene
+          if (node.nodeMarker) {
+            this.scene.add(node.nodeMarker);
+          }
+          if (node.trajectoryPreview) {
+            this.scene.add(node.trajectoryPreview);
+          }
+          
+          this.showNotification('Manoeuvre node added: 0.5 km/s prograde');
+        }
+        break;
+
+      case 'KeyA':
+        // Cycle attitude mode
+        if (this.selectedSpacecraft && this.selectedSpacecraft.systems) {
+          const modes = ['INERTIAL', 'PROGRADE', 'RETROGRADE', 'RADIAL', 'SUN_POINTING'];
+          const current = this.selectedSpacecraft.systems.attitude.mode;
+          const index = modes.indexOf(current);
+          const newMode = modes[(index + 1) % modes.length];
+          this.selectedSpacecraft.systems.attitude.mode = newMode;
+          this.showNotification(`Attitude mode: ${newMode}`);
+        }
+        break;
+
+        case 'KeyT':
+          // Toggle time display format
+          e.preventDefault();
+          this.cycleTimeFormat();
+          break;
+
+        case 'KeyB':
+          // Build trajectory planner
+          e.preventDefault();
+          document.getElementById('trajectory-planner').click();
+          break;
       }
     });
   }
@@ -601,9 +661,10 @@ export class SolarSystem {
     // Raycast for object selection
     this.raycaster.setFromCamera(this.mouse, this.camera);
     
-    // Check planets
+    // Check planets - need to check meshes within groups
     const planetMeshes = [];
     this.bodies.forEach(body => {
+      // The mesh is now inside the group
       body.mesh.traverse(child => {
         if (child instanceof THREE.Mesh) {
           child.userData.body = body;
@@ -694,6 +755,11 @@ export class SolarSystem {
     this.selectedSpacecraft = spacecraft;
     this.selectedBody = null;
     
+    // Show control panel for enhanced spacecraft
+    if (this.spacecraftControlPanel && spacecraft.systems) {
+      this.spacecraftControlPanel.show(spacecraft);
+    }
+    
     // Focus camera
     this.focusOnSpacecraft(spacecraft);
   }
@@ -702,7 +768,11 @@ export class SolarSystem {
     // Remove highlights
     if (this.selectedBody && this.selectedBody.setHighlight) {
       this.selectedBody.setHighlight(false);
-    }
+  // Hide spacecraft control panel
+  if (this.spacecraftControlPanel) {
+    this.spacecraftControlPanel.hide();
+  }
+}
     
     // Clear selection
     this.selectedBody = null;
@@ -713,9 +783,9 @@ export class SolarSystem {
   }
   
   focusOnBody(body) {
-    if (!body || !body.mesh) return;
+    if (!body || !body.group) return;  // Changed from body.mesh to body.group
     
-    const position = body.mesh.position;
+    const position = body.group.position;  // Changed from body.mesh.position
     
     // Smoothly move camera target
     this.controls.target.copy(position);
@@ -819,28 +889,48 @@ export class SolarSystem {
     }
     
     // Get launch position
-    const position = launchBody.mesh.position.clone();
+    const position = launchBody.group ? 
+      launchBody.group.position.clone() : 
+      launchBody.mesh.position.clone();
     
     // Calculate the planet's orbital velocity
     const planetVelocity = this.calculateOrbitalVelocity(launchBody);
     
-    // Add delta-v to planet's velocity
-    const velocity = planetVelocity.add(deltaV || new THREE.Vector3(0, 0, 0));
+    // Offset the launch position
+    if (planetVelocity.length() > 0) {
+      const launchDirection = planetVelocity.clone().normalize();
+      const launchOffset = 0.00005; // AU
+      position.add(launchDirection.multiplyScalar(launchOffset));
+    }
     
-    // Log launch details
-    console.log(`
-🚀 Launching ${name} from ${fromBody}
-📍 Position: ${position.x.toFixed(3)}, ${position.y.toFixed(3)}, ${position.z.toFixed(3)} AU
-🌍 Planet velocity: ${planetVelocity.length().toFixed(2)} km/s
-🎯 Total velocity: ${velocity.length().toFixed(2)} km/s
-💫 Delta-V: ${deltaV.length().toFixed(2)} km/s
-    `.trim());
+    // Convert delta-v from RSW to inertial coordinates
+    const deltaV_inertial = OrbitalMechanics.convertDeltaV(
+      deltaV || new THREE.Vector3(0, 0, 0),
+      position,
+      planetVelocity
+    );
     
-    // Create spacecraft
-    const spacecraft = new Spacecraft(name, {
-      position: position.toArray(),
-      velocity: velocity.toArray()
-    });
+    // Add the delta-v to planet's velocity
+    const velocity = planetVelocity.clone().add(deltaV_inertial);
+    
+    // *** CREATE ENHANCED SPACECRAFT ***
+    const systemConfig = {
+      fuel: 300,
+      oxidizer: 500,
+      solarPanelArea: 30,
+      batteryCapacity: 100,
+      rcsFuel: 50,
+      dishDiameter: 2
+    };
+    
+    const spacecraft = SpacecraftFactory.createEnhanced(
+      name,
+      {
+        position: position.toArray(),
+        velocity: velocity.toArray()
+      },
+      systemConfig
+    );
     
     // Add to scene and tracking
     this.spacecraft.push(spacecraft);
@@ -851,7 +941,7 @@ export class SolarSystem {
     this.selectSpacecraft(spacecraft);
     
     // Show launch notification
-    this.showNotification(`${name} launched successfully!`);
+    this.showNotification(`${name} launched with enhanced systems!`);
     
     return spacecraft;
   }
